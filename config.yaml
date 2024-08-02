@@ -1,0 +1,26 @@
+logging:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    standard:
+      format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    json:
+      format: '{"timestamp": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      level: DEBUG
+    file:
+      class: logging.FileHandler
+      filename: logs/app.log
+      formatter: standard
+      level: DEBUG
+    json_file:
+      class: logging.FileHandler
+      filename: logs/app.json
+      formatter: json
+      level: DEBUG
+  root:
+    handlers: [console, file, json_file]
+    level: DEBUG

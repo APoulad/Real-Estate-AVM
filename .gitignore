@@ -1,0 +1,8 @@
+venv/
+data/
+secrets/
+logs/
+.env
+.DS_STORE
+.vscode
+*.pyc
