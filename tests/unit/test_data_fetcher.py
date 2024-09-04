@@ -13,9 +13,6 @@ def data_fetcher():
         yield fetcher
 
 
-from unittest.mock import patch, Mock
-
-
 @patch("src.pipeline.data_fetcher.requests.get")
 def test_fetch_recent_properties_success(mock_get, data_fetcher):
     mock_response = Mock()
