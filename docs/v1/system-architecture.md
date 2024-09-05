@@ -2,7 +2,7 @@
 
 ## Overview
 
-The system architecture for the Columbus Real Estate Predictor is designed to ensure efficient data collection, processing, storage, and machine learning model training for predicting property prices in the Columbus, Ohio market.
+The system architecture for the Real Estate AVM is designed to ensure efficient data collection, processing, storage, and machine learning model training for predicting property prices.
 
 ## Components
 
@@ -15,7 +15,7 @@ The system architecture for the Columbus Real Estate Predictor is designed to en
 4. **ML Model for Image Labeling**
    - Processes property images and stores labeled metadata.
 5. **ML Model for Price Predictions**
-   - Includes Linear Regression, Hedonic Regression, and Ensemble models.
+   - Includes Linear Regression, Multimodal with CNN, and Ensemble models with price adjustments.
 6. **Prediction API**
    - Provides endpoints for fetching property data, making price predictions, and retrieving market analysis.
 7. **React Frontend**
