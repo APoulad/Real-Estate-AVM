@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Initial Project Proposal](#initial-project-proposal)
+- [Literature Review](docs/v1/literature-review.md)
 - [API Documentation](#api-documentation)
 - [System Architecture](#system-architecture)
 - [Technologies](#technologies)
@@ -45,6 +46,10 @@ Our AVM will integrate both visual and structured data using machine learning te
 #### Data Labeling:
 
 To label the data, we will develop a custom process that identifies room types, assesses their condition, and highlights relevant features such as kitchen islands or walk-in showers. This will involve using manual annotation tools to tag and describe various elements in the property images. Semi-automated techniques, supported by pre-trained models for object detection and image recognition, will help streamline the labeling process while maintaining high accuracy through human verification.
+
+## Literature Review
+
+The literature review is avaibale [here](docs/v1/literature-review.md)
 
 ## API Documentation
 
