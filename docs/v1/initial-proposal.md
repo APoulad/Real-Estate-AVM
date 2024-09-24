@@ -1,11 +1,38 @@
-## Initial Project Proposal: Adaptive Real Estate AVM Using Embeddings and Dynamic Comparables
+## Initial Project Proposal
 
-### Introduction:
+#### Overview:
 
 Real estate investors rely heavily on accurate pricing predictions when considering a property for a potential investment. In order to make these estimates, investors analyze various sources of data including structured property data, images, and comparable sales (comps) to provide a holistic view of the target investment. With hundreds to thousands of properties in any given market, manually identifying great investment becomes an inefficient process and results in many missed opportunities due to fast-moving markets. Our goal is to develop a more efficient Automated Valuation Model (AVM) that leverages advanced machine learning techniques to accurately predict property prices. By identifying and adjusting for the most relevant comps, our system will help investors save time and make better data-driven decisions.
 
-We propose an AVM that integrates both visual and structured data using advanced ML techniques. The model begins with a Convolutional Neural Network (CNN) to extract key visual features from property images, such as condition, style, and quality. These visual features are combined with structured data (e.g., location, size, amenities) using contrastive learning to create a unified embedding space that represents each property. An attention mechanism is then used to dynamically select and prioritize the most relevant recently sold properties as comps.
+Our AVM will integrate both visual and structured data using machine learning techniques. First, a Convolutional Neural Network (CNN) will extract visual features from property images (e.g., room types, condition, and unique features like kitchen islands or walk-in showers). These features will be combined with structured data (e.g., location, size, and amenities) to create a comprehensive representation of each property. Using this representation, the model will identify the most relevant comparable properties and adjust the estimated price based on differences such as location, size, and specific features.
 
-After identifying a baseline price from the comps, the model adjusts this price to account for specific differences between the comps and the target property. This adjustment is guided by factors such as location, size, age, and unique features, ensuring the final predicted price is tailored to the target property. This approach provides a fast, reliable, and automated method for running comps and predicting property values.
+#### Dataset:
 
-Our model will initially be trained on a dataset of approximately 8,000 properties collected using the unofficial Zillow API via RapidAPI. We will establish a baseline with a simple regression model using structured data without images. This baseline will be measured using performance metrics such as Mean Squared Error (MSE) and R-squared (R²). As we expand our dataset and integrate multimodal inputs, including property images, we will continuously compare our model's performance against these baseline metrics to validate its effectiveness as we build our system.
+- A custom dataset collected from the Zillow API via RapidAPI, consisting of approximately 8,000 properties sold from August 2022 to August 2024 in Columbus, Ohio.
+- Future expansion plans include gathering similar datasets from other Ohio markets while focusing on recent data to ensure relevance in changing economic conditions.
+
+#### AVM Development Process:
+
+- Step 1: Data Pipeline and Preprocessing
+
+  Set up a data pipeline to automatically collect data from the Zillow API. Perform preprocessing steps, including cleaning and normalizing property data, handling missing values, and feature engineering to extract relevant structured data (e.g., property type, age, location coordinates, and amenities).
+
+- Step 2: Feature Extraction and Embedding Creation
+
+  Utilize a CNN to extract visual features from property images, such as room types, condition, and unique features. Combine these with structured data (e.g., property size, location) to create a unified property embedding.
+
+- Step 3: Comparable Property Identification
+
+  Use the unified embedding to find the most relevant comparable properties in the dataset based on similarity scores.
+
+- Step 4: Price Adjustment
+
+  Adjust the baseline price by accounting for key differences between the target property and its comps (e.g., location, age, and specific property features).
+
+- Step 5: Model Training and Performance Evaluation
+
+  Train the AVM on the dataset, starting with a baseline regression model using only structured property data and iteratively incorporating more complex features, such as the CNN and other ML techniques. Measure performance using metrics like Mean Squared Error (MSE) and R-squared (R²).
+
+#### Data Labeling:
+
+To label the data, we will develop a custom process that identifies room types, assesses their condition, and highlights relevant features such as kitchen islands or walk-in showers. This will involve using manual annotation tools to tag and describe various elements in the property images. Semi-automated techniques, supported by pre-trained models for object detection and image recognition, will help streamline the labeling process while maintaining high accuracy through human verification.

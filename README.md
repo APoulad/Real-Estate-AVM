@@ -4,6 +4,7 @@
 
 - [Initial Project Proposal](#initial-project-proposal)
 - [Literature Review](docs/v1/literature-review.md)
+- [Detailed Work Plan](docs/v1/detailed-work-plan.md)
 - [API Documentation](#api-documentation)
 - [System Architecture](#system-architecture)
 - [Technologies](#technologies)
@@ -51,16 +52,19 @@ To label the data, we will develop a custom process that identifies room types, 
 
 The literature review is avaibale [here](docs/v1/literature-review.md)
 
-## API Documentation
+## Detailed Work Plan
 
-Coming Soon!
+The detailed work plan is avaibale [here](docs/v1/detailed-work-plan.md)
 
 ## System Architecture
 
 Detailed information about the system architecture is available in the [System Architecture](docs/v1/system-architecture.md) file.
 
-## Technologies
+## Tech Stack and Libraries:
 
-- Backend: Python, Flask, RESTful API - Google Cloud Platform (Cloud Storage, Firestore, AI Platform)
-- Machine Learning: TensorFlow, Scikit-learn, PyTorch
-- Data Processing: Pandas, NumPy, Google Cloud Functions
+- Backend: Flask (Python), Firestore (NoSQL database), GCP Storage, GCP Cloud Run, GCP Artifact Registry
+- Frontend:
+  - Image Labeler: HTML, Tailwind CSS, JavaScript
+  - Final UI: React
+- ML/Data Analysis: PyTorch, Scikit-learn, Pandas, Numpy, Matplotlib, Jupyter Notebooks
+- Deployment: GCP (Google Cloud Platform), Vercel, Docker
