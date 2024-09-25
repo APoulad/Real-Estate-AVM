@@ -97,8 +97,6 @@ The backend will be built using Flask, with multiple API endpoints to manage the
 - Receive the image ID and session information.
 - Update the Firestore document to reset `served = False`.
 
-Here's your text converted to Markdown:
-
 ## Google Cloud Platform (GCP) Services
 
 #### Cloud Storage:
