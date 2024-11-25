@@ -181,6 +181,7 @@ if __name__ == "__main__":
 
         # Initialize model, optimizer, and scheduler
         model = RoomClassifier(num_classes=len(label_map)).to(device)
+        # Could add label_smoothing=0.1 to help with noise of bad labels
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode="min", patience=3, verbose=True)

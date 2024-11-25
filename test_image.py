@@ -61,7 +61,7 @@ def predict(image_path: str, model, device):
 
 if __name__ == "__main__":
     # Input image path
-    image_path = "data/raw/sample_property2/17_N_Parkview_Ave/pic33_17_N_Parkview_Ave.jpg"
+    image_path = "data/raw/sample_property2/17_N_Parkview_Ave/pic9_17_N_Parkview_Ave.jpg"
 
     # Device configuration
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
