@@ -7,3 +7,7 @@ logs/
 .vscode
 *.pyc
 .pytest_cache/
+*.csv
+*.jpg
+*.jpeg
+*.pth
