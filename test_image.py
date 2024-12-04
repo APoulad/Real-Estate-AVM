@@ -3,7 +3,7 @@ from torchvision import transforms
 from PIL import Image
 import logging
 import sys
-from labeler_cnn import RoomClassifier, label_map  # Import your model and label map
+from room_labeler_cnn import RoomClassifier, label_map  # Import your model and label map
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -61,13 +61,13 @@ def predict(image_path: str, model, device):
 
 if __name__ == "__main__":
     # Input image path
-    image_path = "data/raw/sample_property2/17_N_Parkview_Ave/pic9_17_N_Parkview_Ave.jpg"
+    image_path = "data/raw/sample_property2/17_N_Parkview_Ave/pic2_17_N_Parkview_Ave.jpg"
 
     # Device configuration
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
 
     # Model and label map details
-    model_path = "room_classifier.pth"  # Path to the saved model
+    model_path = "room_classifier18.1.pth"  # Path to the saved model
     num_classes = len(label_map)
 
     # Load model

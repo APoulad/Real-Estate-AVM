@@ -12,12 +12,10 @@ import logging
 import time
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-# --- Logging Setup ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Configuration ---
-label_map = {
+room_label_map = {
     "Bathroom": 0,
     "Kitchen": 1,
     "Living Room": 2,
@@ -25,21 +23,15 @@ label_map = {
     "Bedroom": 4,
     "Office": 5,
     "Closet": 6,
-    "Attic": 7,
-    "Garage": 8,
-    "Basement": 9,
-    "Utility": 10,
-    "Hallway": 11,
-    "Stairs": 12,
-    "Exterior": 13,
-    "Pantry": 14,
-    "Patio": 15,
-    "Balcony": 16,
-    "Deck": 17,
+    "Basement": 7,
+    "Stairs": 8,
+    "Exterior": 9,
 }
 
-root_dir = "data/raw/sample_property1"
-csv_file = "room_labeled_properties.csv"
+room_type_dir = "data/raw/kaggle/house_data"
+room_type_labels = "kaggle_labels.csv"
+
+# Maybe try different hyperparamaters
 batch_size = 32
 num_epochs = 10
 learning_rate = 0.001
@@ -53,32 +45,43 @@ class RoomDataset(Dataset):
         self.label_map = label_map
         self.transform = transform or transforms.ToTensor()
 
+        # Validate and load image paths and labels
         self.image_paths, self.labels = self._load_image_paths_and_labels()
 
     def _get_pic_filename(self, filename: str) -> str:
+        """Extracts the picture filename if it's prefixed with 'pic'."""
         return filename[filename.index("pic") :] if "pic" in filename else filename
 
     def _load_image_paths_and_labels(self) -> Tuple[List[str], List[int]]:
+        """Loads and validates image paths and labels based on the source of the data."""
         image_paths, labels = [], []
         for _, row in self.data.iterrows():
-            pic_filename = self._get_pic_filename(str(row["property_id"]))
-            img_path = os.path.join(self.root_dir, str(row["property_address"]), pic_filename)
-
+            img_path = os.path.join(self.root_dir, str(row["image_name"]))
             if os.path.exists(img_path) and row["room_type"] in self.label_map:
-                image_paths.append(img_path)
-                labels.append(self.label_map[row["room_type"]])
+                try:
+                    with Image.open(img_path) as img:
+                        img.verify()
+                    image_paths.append(img_path)
+                    labels.append(self.label_map[row["room_type"]])
+                except (Image.UnidentifiedImageError, IOError):
+                    logger.warning(f"Invalid image skipped: {img_path}")
         return image_paths, labels
 
     def __len__(self):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
+        """Fetches an image and its label."""
         img_path = self.image_paths[idx]
         label = self.labels[idx]
-        image = Image.open(img_path).convert("RGB")
-        if self.transform:
-            image = self.transform(image)
-        return image, label
+        try:
+            image = Image.open(img_path).convert("RGB")
+            if self.transform:
+                image = self.transform(image)
+            return image, label
+        except Exception as e:
+            logger.error(f"Failed to load image at {img_path}: {e}")
+            raise
 
 
 # --- DataLoader ---
@@ -97,9 +100,9 @@ def create_data_loader(data, root_dir, label_map, batch_size, transform=None):
 # --- Split Dataset ---
 def split_dataset(data: pd.DataFrame, test_size: float = 0.2) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Split the dataset into training and testing sets."""
-    # train_data, test_data = train_test_split(data, test_size=test_size, stratify=data["room_type"], random_state=42)
     # Try previous version when there are more labels so stratify works
-    train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
+    train_data, test_data = train_test_split(data, test_size=test_size, stratify=data["room_type"], random_state=42)
+    # train_data, test_data = train_test_split(data, test_size=test_size, random_state=42)
     return train_data, test_data
 
 
@@ -170,18 +173,19 @@ if __name__ == "__main__":
         device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
         logger.info(f"Using device: {device}")
 
-        # Load and preprocess data
-        data = pd.read_csv(csv_file)
-        data = data[data["room_type"] != "Other"]  # Remove "Other" labels
+        # Load and preprocess data from CSV2
+        data = pd.read_csv(room_type_labels)
+        data = data.rename(columns={"property_id": "image_name", "room_type": "room_type"})
+
+        # Split dataset into training and testing sets
         train_data, test_data = split_dataset(data)
 
-        # Create DataLoaders
-        train_loader = create_data_loader(train_data, root_dir, label_map, batch_size)
-        test_loader = create_data_loader(test_data, root_dir, label_map, batch_size)
+        # Create DataLoaders for both datasets
+        train_loader = create_data_loader(train_data, room_type_dir, room_label_map, batch_size)
+        test_loader = create_data_loader(test_data, room_type_dir, room_label_map, batch_size)
 
         # Initialize model, optimizer, and scheduler
-        model = RoomClassifier(num_classes=len(label_map)).to(device)
-        # Could add label_smoothing=0.1 to help with noise of bad labels
+        model = RoomClassifier(num_classes=len(room_label_map)).to(device)
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode="min", patience=3, verbose=True)
@@ -194,7 +198,7 @@ if __name__ == "__main__":
         logger.info(f"Final Test Accuracy: {test_accuracy:.2f}%")
 
         # Save the model
-        torch.save(model.state_dict(), "room_classifier.pth")
+        torch.save(model.state_dict(), "room_classifier18.1.pth")
         logger.info("Training and testing complete. Model saved to room_classifier.pth")
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
