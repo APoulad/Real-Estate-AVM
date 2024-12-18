@@ -48,6 +48,6 @@ def generate_room_type_csv(input_folder, output_csv):
 
 
 # Example usage
-input_folder = "data/raw/kaggle/house_data/"
+input_folder = "../data/raw/kaggle/house_data/"
 output_csv = "kaggle_labels.csv"
 generate_room_type_csv(input_folder, output_csv)

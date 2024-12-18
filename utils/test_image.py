@@ -3,7 +3,7 @@ from torchvision import transforms
 from PIL import Image
 import logging
 import sys
-from room_labeler_cnn import RoomClassifier, label_map  # Import your model and label map
+from room_labeler_cnn import RoomClassifier, room_label_map  # Import your model and label map
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -53,7 +53,7 @@ def predict(image_path: str, model, device):
         _, predicted = torch.max(outputs, 1)  # Get the class index with the highest score
 
     # Reverse the label map to find the class name
-    label_map_reverse = {v: k for k, v in label_map.items()}
+    label_map_reverse = {v: k for k, v in room_label_map.items()}
     predicted_label = label_map_reverse.get(predicted.item(), "Unknown")
 
     return predicted_label
@@ -67,8 +67,8 @@ if __name__ == "__main__":
     device = torch.device("mps") if torch.backends.mps.is_available() else torch.device("cpu")
 
     # Model and label map details
-    model_path = "room_classifier18.1.pth"  # Path to the saved model
-    num_classes = len(label_map)
+    model_path = "cnn_models/room_classifier.pth"  # Path to the saved model
+    num_classes = len(room_label_map)
 
     # Load model
     model = load_model(model_path, num_classes, device)
