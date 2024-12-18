@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Property Viewer</title>
+    <script>
+      async function fetchPropertyData() {
+        const addressInput = document.getElementById("address").value;
+        if (!addressInput) {
+          alert("Please enter an address.");
+          return;
+        }
+
+        try {
+          // Step 1: Fetch Property Data
+          const propertyDataResponse = await fetch("/get-property-data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ address: addressInput }),
+          });
+
+          const propertyData = await propertyDataResponse.json();
+
+          if (propertyData.error) {
+            alert(propertyData.error);
+            return;
+          }
+
+          document.getElementById("property-data").textContent = JSON.stringify(
+            propertyData.property_data,
+            null,
+            2
+          );
+
+          // Step 2: Fetch Property Images
+          const imagesResponse = await fetch("/get-property-images", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ address: addressInput }),
+          });
+
+          const imagesData = await imagesResponse.json();
+
+          if (imagesData.error) {
+            alert(imagesData.error);
+            return;
+          }
+
+          const imageContainer = document.getElementById("property-images");
+          imageContainer.innerHTML = ""; // Clear previous images
+          if (imagesData.images.length > 0) {
+            const firstImageUrl = imagesData.images[0];
+            const img = document.createElement("img");
+            img.src = firstImageUrl;
+            img.alt = "First Property Image";
+            img.style.width = "300px";
+            img.style.margin = "10px";
+            imageContainer.appendChild(img);
+          } else {
+            imageContainer.textContent = "No images available.";
+          }
+
+          // Step 3: Fetch Quality Score
+          const qualityScoreResponse = await fetch("/get-quality-score", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ address: addressInput }),
+          });
+
+          const qualityScoreData = await qualityScoreResponse.json();
+
+          if (qualityScoreData.error) {
+            alert(qualityScoreData.error);
+            return;
+          }
+
+          document.getElementById(
+            "quality-score"
+          ).textContent = `Quality Score: ${qualityScoreData.quality_score}`;
+        } catch (error) {
+          console.error("Error fetching property details:", error);
+          alert("An error occurred. Please try again.");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Property Viewer</h1>
+    <div>
+      <label for="address">Enter Address:</label>
+      <input type="text" id="address" placeholder="123 Main St, City, State" />
+      <button onclick="fetchPropertyData()">Fetch Property Data</button>
+    </div>
+
+    <h2>Property Data:</h2>
+    <pre id="property-data">No data yet.</pre>
+
+    <h2>Property Images:</h2>
+    <div id="property-images">No images yet.</div>
+
+    <h2>Quality Score:</h2>
+    <div id="quality-score">No score yet.</div>
+  </body>
+</html>
