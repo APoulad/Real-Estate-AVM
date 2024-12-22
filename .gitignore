@@ -11,3 +11,4 @@ logs/
 *.jpg
 *.jpeg
 *.pth
+*.sav

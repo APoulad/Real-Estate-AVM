@@ -1,7 +1,10 @@
 import os
 import requests
+import pickle
 from io import BytesIO
 
+import pandas as pd
+import numpy as np
 import torch
 from PIL import Image
 from torchvision import transforms
@@ -12,6 +15,7 @@ from room_scoring_cnn import RoomScore
 
 LABEL_MODEL_PATH = "cnn_models/room_classifier.pth"
 SCORING_MODEL_PATH = "cnn_models/room_scorer.pth"
+LINEAR_REGRESSION_MODEL_PATH = "cnn_models/lm_with_images.sav"
 
 ROOM_WEIGHTS = {
     "Bathroom": 1.8,
@@ -62,7 +66,7 @@ def get_images(property_data):
     return images
 
 
-def calculate_property_score(images):
+def calculate_property_score(images, local=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     label_model = _load_model(LABEL_MODEL_PATH, len(room_label_map), device, model_type="classification")
@@ -73,16 +77,21 @@ def calculate_property_score(images):
     room_scores = {room: [] for room in ROOM_WEIGHTS}
 
     for name, url in images.items():
-        response = requests.get(url)
-        if response.status_code == 200:
-            img = Image.open(BytesIO(response.content))
-            room_type = _predict_image(img, label_model, device, label_map_reverse, model_type="classification")
+        if not local:
+            response = requests.get(url)
+            if response.status_code == 200:
+                img = Image.open(BytesIO(response.content))
 
-            if room_type in ROOM_WEIGHTS:
-                score = _predict_image(img, scoring_model, device, model_type="regression")
-                # Normalizes property score between 0-1
-                normalized_score = (score - 1) / (9 - 1)
-                room_scores[room_type].append(normalized_score)
+        else:
+            img = Image.open(url)
+
+        room_type = _predict_image(img, label_model, device, label_map_reverse, model_type="classification")
+
+        if room_type in ROOM_WEIGHTS:
+            score = _predict_image(img, scoring_model, device, model_type="regression")
+            # Normalizes property score between 0-1
+            normalized_score = (score - 1) / (9 - 1)
+            room_scores[room_type].append(normalized_score)
 
     # Calculate weighted sum using ROOM_WEIGHTS
     total_weight = 0
@@ -97,6 +106,55 @@ def calculate_property_score(images):
     quality_score = weighted_sum / total_weight if total_weight > 0 else 0
 
     return quality_score
+
+
+def calculate_property_price(property_data, images) -> float:
+    try:
+        lm = pickle.load(open(LINEAR_REGRESSION_MODEL_PATH, "rb"))
+        quality_score = calculate_property_score(images)
+
+        # Define the required columns in the correct order
+        required_cols = [
+            "zestimate",
+            "bathrooms",
+            "bedrooms",
+            "livingArea",
+            "lotSize",
+            "yearBuilt",
+            "taxAssessedValue",
+            "quality_score",
+        ]
+
+        # Create a dictionary with the required data
+        data_dict = {
+            "zestimate": float(property_data.get("zestimate", 0)),
+            "bathrooms": float(property_data.get("bathrooms", 0)),
+            "bedrooms": float(property_data.get("bedrooms", 0)),
+            "livingArea": float(property_data.get("livingArea", 0)),
+            "lotSize": float(property_data.get("lotSize", 0)),
+            "yearBuilt": float(property_data.get("yearBuilt", 0)),
+            "taxAssessedValue": float(property_data.get("taxAssessedValue", 0)),
+            "quality_score": quality_score,
+        }
+
+        # Convert to DataFrame with a single row
+        df = pd.DataFrame([data_dict])
+
+        # Ensure all columns are present and in the correct order
+        df = df[required_cols]
+
+        # Handle missing values
+        df = df.fillna(0)
+
+        # Make prediction
+        prediction = lm.predict(df)[0]  # Get first prediction since we only have one row
+        zestimate = property_data.get("zestimate", 0)
+
+        return (float(prediction), float(zestimate))
+
+    except Exception as e:
+        print(f"Error in calculate_property_price: {str(e)}")
+        raise
 
 
 def _preprocess_image(image: Image):

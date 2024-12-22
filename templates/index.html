@@ -3,8 +3,319 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Property Viewer</title>
+    <title>Property Analyzer</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .loading {
+        position: relative;
+        pointer-events: none;
+      }
+      .loading::after {
+        content: "Loading...";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2em;
+      }
+      .gallery-container {
+        scroll-snap-type: x mandatory;
+        overflow-x: auto;
+      }
+      .gallery-image {
+        scroll-snap-align: start;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-600 text-white shadow-lg">
+      <div class="container mx-auto px-4 py-4">
+        <h1 class="text-3xl font-bold">Real Estate AVM</h1>
+        <p class="text-sm opacity-80">
+          Analysis and price predictions for Zillow listed properties
+        </p>
+      </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+      <!-- Search Section with History -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex-grow">
+            <label for="address" class="block text-sm font-medium text-gray-700 mb-2"
+              >Property Address</label
+            >
+            <input
+              type="text"
+              id="address"
+              class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="123 Main St, City, State"
+            />
+          </div>
+          <div class="flex items-end gap-4">
+            <button
+              onclick="fetchPropertyData()"
+              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Analyze Property
+            </button>
+            <button
+              onclick="toggleSearchHistory()"
+              class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              History
+            </button>
+          </div>
+        </div>
+
+        <!-- Search History Dropdown -->
+        <div id="search-history" class="hidden mt-4 border-t pt-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-2">Recent Searches</h3>
+          <div id="history-list" class="space-y-2">
+            <!-- History items will be inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Property Details Cards -->
+        <div class="space-y-6">
+          <!-- Location Details Card -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Location Details</h2>
+            <div id="location-details" class="text-sm space-y-2">
+              <!-- Location details will be populated here -->
+            </div>
+          </div>
+
+          <!-- Basic Info Card -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Basic Information</h2>
+            <div id="basic-info" class="text-sm space-y-2">
+              <!-- Basic info will be populated here -->
+            </div>
+          </div>
+
+          <!-- Agent Information Card -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Agent Information</h2>
+            <div id="agent-info" class="text-sm space-y-2">
+              <!-- Agent info will be populated here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Price Analysis Section -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Price Analysis Card -->
+          <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Price Analysis</h2>
+
+            <!-- Price Comparison Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-600 mb-1">Listing Price</p>
+                <p id="listing-price" class="text-2xl font-bold text-gray-900">
+                  No data yet
+                </p>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-600 mb-1">Our Prediction</p>
+                <p id="price-prediction" class="text-2xl font-bold text-blue-600">
+                  No prediction yet
+                </p>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-600 mb-1">Zillow Estimate</p>
+                <p id="zestimate" class="text-2xl font-bold text-green-600">
+                  No Zestimate yet
+                </p>
+              </div>
+            </div>
+
+            <!-- Price Analysis Details -->
+            <div class="space-y-6">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">Price Comparisons</h3>
+                <div id="price-comparisons" class="space-y-2 text-sm">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>vs. Listing Price:</div>
+                    <div id="prediction-vs-listing" class="font-medium">No data yet</div>
+                    <div>vs. Zestimate:</div>
+                    <div id="prediction-vs-zestimate" class="font-medium">
+                      No data yet
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">Value Metrics</h3>
+                <div id="value-metrics" class="space-y-2 text-sm">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>Tax Assessment Ratio:</div>
+                    <div id="tax-assessment-ratio" class="font-medium">No data yet</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="font-semibold text-gray-800 mb-3">Market Analysis</h3>
+                <div id="market-analysis" class="space-y-2 text-sm">
+                  Waiting for data...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Gallery -->
+      <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Property Images</h2>
+        <div class="gallery-container flex overflow-x-auto gap-4 pb-4">
+          <div id="property-images" class="flex gap-4">
+            <div class="text-gray-500">No images yet.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
     <script>
+      // Fields for display
+      const BASIC_INFO_FIELDS = {
+        bedrooms: "Bedrooms",
+        bathrooms: "Bathrooms",
+        livingArea: "Square Feet",
+        lotSize: "Lot Size",
+        yearBuilt: "Year Built",
+        description: "Description",
+      };
+
+      const LOCATION_FIELDS = {
+        address: "Street Address",
+        city: "City",
+        state: "State",
+        zipcode: "ZIP Code",
+        county: "County",
+      };
+
+      // Local Storage Keys
+      const SEARCH_HISTORY_KEY = "propertySearchHistory";
+      const PROPERTY_DATA_KEY = "propertyData";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadLastSearch();
+        updateSearchHistoryUI();
+      });
+
+      function loadLastSearch() {
+        const lastPropertyData = localStorage.getItem(PROPERTY_DATA_KEY);
+        if (lastPropertyData) {
+          // Could be stored as { propertyData: { ... }, timestamp: ... }
+          const data = JSON.parse(lastPropertyData);
+          const propData = data.propertyData || data; // handle both shapes
+          displayAllData(propData);
+          document.getElementById("address").value = propData.address || "";
+        }
+      }
+
+      function saveToHistory(propertyData) {
+        const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || "[]");
+        const newEntry = {
+          address: propertyData.address,
+          timestamp: new Date().toISOString(),
+          data: propertyData,
+        };
+
+        // Remove any existing item with the same address
+        const uniqueHistory = history.filter(
+          (item) => item.address !== propertyData.address
+        );
+        // Insert new entry at the front
+        uniqueHistory.unshift(newEntry);
+
+        // Keep only last 10 searches
+        const trimmedHistory = uniqueHistory.slice(0, 10);
+
+        // Save back
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(trimmedHistory));
+
+        // Also store the last search
+        localStorage.setItem(
+          PROPERTY_DATA_KEY,
+          JSON.stringify({ propertyData, timestamp: new Date().toISOString() })
+        );
+
+        // Update UI
+        updateSearchHistoryUI();
+      }
+
+      function updateSearchHistoryUI() {
+        const historyList = document.getElementById("history-list");
+        const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || "[]");
+
+        // Build each item with a unique index
+        historyList.innerHTML = history
+          .map((item, index) => {
+            return `
+              <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                <button 
+                  onclick="loadHistoryItem(${index})"
+                  class="text-left flex-grow text-blue-600 hover:text-blue-800"
+                >
+                  ${item.address}
+                </button>
+                <span class="text-xs text-gray-500">
+                  ${new Date(item.timestamp).toLocaleDateString()}
+                </span>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      // Load a previous item by index
+      function loadHistoryItem(index) {
+        const history = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || "[]");
+        const item = history[index];
+        if (!item) return;
+
+        // Display the data
+        displayAllData(item.data);
+        // Update the address field
+        document.getElementById("address").value = item.data.address || "";
+        // Hide the search history dropdown
+        toggleSearchHistory();
+      }
+
+      function toggleSearchHistory() {
+        const historyDiv = document.getElementById("search-history");
+        historyDiv.classList.toggle("hidden");
+      }
+
+      // Helper to POST JSON and return JSON
+      async function fetchData(endpoint, data) {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const result = await response.json();
+        if (result.error) throw new Error(result.error);
+        return result;
+      }
+
+      // Main fetch function
       async function fetchPropertyData() {
         const addressInput = document.getElementById("address").value;
         if (!addressInput) {
@@ -12,100 +323,311 @@
           return;
         }
 
+        document.body.classList.add("loading");
         try {
-          // Step 1: Fetch Property Data
-          const propertyDataResponse = await fetch("/get-property-data", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ address: addressInput }),
+          // 1. Fetch property data
+          const propertyResponse = await fetchData("/get-property-data", {
+            address: addressInput,
           });
-
-          const propertyData = await propertyDataResponse.json();
-
-          if (propertyData.error) {
-            alert(propertyData.error);
-            return;
+          if (!propertyResponse.property_data) {
+            throw new Error("Failed to fetch property data");
           }
 
-          document.getElementById("property-data").textContent = JSON.stringify(
-            propertyData.property_data,
-            null,
-            2
-          );
-
-          // Step 2: Fetch Property Images
-          const imagesResponse = await fetch("/get-property-images", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ address: addressInput }),
+          // 2. Fetch property images
+          const imagesResponse = await fetchData("/get-property-images", {
+            address: addressInput,
           });
-
-          const imagesData = await imagesResponse.json();
-
-          if (imagesData.error) {
-            alert(imagesData.error);
-            return;
+          if (!imagesResponse.images) {
+            throw new Error("Failed to fetch property images");
           }
 
-          const imageContainer = document.getElementById("property-images");
-          imageContainer.innerHTML = ""; // Clear previous images
-          if (imagesData.images.length > 0) {
-            const firstImageUrl = imagesData.images[0];
-            const img = document.createElement("img");
-            img.src = firstImageUrl;
-            img.alt = "First Property Image";
-            img.style.width = "300px";
-            img.style.margin = "10px";
-            imageContainer.appendChild(img);
-          } else {
-            imageContainer.textContent = "No images available.";
-          }
-
-          // Step 3: Fetch Quality Score
-          const qualityScoreResponse = await fetch("/get-quality-score", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ address: addressInput }),
+          // 3. Fetch price prediction
+          const predictionResponse = await fetchData("/get-price-prediction", {
+            address: addressInput,
           });
-
-          const qualityScoreData = await qualityScoreResponse.json();
-
-          if (qualityScoreData.error) {
-            alert(qualityScoreData.error);
-            return;
+          if (!predictionResponse) {
+            throw new Error("Failed to fetch price prediction");
           }
 
-          document.getElementById(
-            "quality-score"
-          ).textContent = `Quality Score: ${qualityScoreData.quality_score}`;
+          // Combine
+          const combinedData = {
+            ...propertyResponse.property_data,
+            images: imagesResponse.images,
+            prediction: predictionResponse,
+          };
+
+          // Display
+          displayAllData(combinedData);
+          saveToHistory(combinedData);
         } catch (error) {
-          console.error("Error fetching property details:", error);
-          alert("An error occurred. Please try again.");
+          console.error("Error:", error);
+          alert(error.message || "An error occurred while fetching property data");
+        } finally {
+          document.body.classList.remove("loading");
         }
       }
+
+      // =====================
+      // DISPLAY DATA FUNCTIONS
+      // =====================
+      function displayAllData(data) {
+        // Location
+        displayLocationDetails(data);
+
+        // Basic Info (including truncated description)
+        displayBasicInfo(data);
+
+        // Agent Info (handle listing_agent object)
+        displayAgentInfo(data);
+
+        // Images
+        displayImages(data.images);
+
+        // Price Analysis
+        if (data.prediction) {
+          displayPriceAnalysis(data.prediction, data);
+        }
+      }
+
+      function displayLocationDetails(data) {
+        const container = document.getElementById("location-details");
+        let html = '<div class="grid grid-cols-2 gap-x-4 gap-y-2">';
+        Object.entries(LOCATION_FIELDS).forEach(([key, label]) => {
+          if (data[key]) {
+            html += `
+              <div class="text-gray-600">${label}:</div>
+              <div class="text-gray-900 font-medium">${data[key]}</div>
+            `;
+          }
+        });
+        html += "</div>";
+        container.innerHTML = html;
+      }
+
+      function displayBasicInfo(data) {
+        const container = document.getElementById("basic-info");
+        let html = '<div class="grid grid-cols-2 gap-x-4 gap-y-2">';
+
+        Object.entries(BASIC_INFO_FIELDS).forEach(([key, label]) => {
+          if (!data[key]) return;
+
+          let value = formatValue(key, data[key]);
+
+          // Apply multiline ellipsis only for description
+          if (key === "description") {
+            html += `
+        <div class="text-gray-600">${label}:</div>
+        <!-- 
+          Multiline ellipsis trick:
+            1) display: -webkit-box
+            2) -webkit-line-clamp (number of lines)
+            3) -webkit-box-orient: vertical
+            4) overflow hidden + text-overflow: ellipsis
+        -->
+        <div class="text-gray-900 font-medium overflow-hidden"
+             style="
+               display: -webkit-box;
+               -webkit-line-clamp: 5;
+               -webkit-box-orient: vertical;
+               white-space: normal;
+               text-overflow: ellipsis;
+             ">
+          ${value}
+        </div>
+      `;
+          } else {
+            // Normal render for other fields
+            html += `
+        <div class="text-gray-600">${label}:</div>
+        <div class="text-gray-900 font-medium">${value}</div>
+      `;
+          }
+        });
+
+        html += "</div>";
+        container.innerHTML = html;
+      }
+
+      function displayAgentInfo(data) {
+        const container = document.getElementById("agent-info");
+        let html = '<div class="grid grid-cols-2 gap-x-4 gap-y-2">';
+
+        if (data.listing_agent && typeof data.listing_agent === "object") {
+          const agent = data.listing_agent;
+
+          // Use display_name for the agent's name
+          const agentName = agent.display_name || "N/A";
+
+          // Combine phone parts into a single string, if present
+          let phoneStr = "N/A";
+          if (
+            agent.phone &&
+            agent.phone.areacode &&
+            agent.phone.prefix &&
+            agent.phone.number
+          ) {
+            phoneStr = `(${agent.phone.areacode}) ${agent.phone.prefix}-${agent.phone.number}`;
+          }
+
+          // Other fields you might want to display
+          const businessName = agent.business_name || "N/A";
+          const rating = agent.rating_average != null ? agent.rating_average : "N/A";
+
+          html += `
+      <div class="text-gray-600">Listing Agent Name:</div>
+      <div class="text-gray-900 font-medium">${agentName}</div>
+
+      <div class="text-gray-600">Phone Number:</div>
+      <div class="text-gray-900 font-medium">${phoneStr}</div>
+
+      <div class="text-gray-600">Business Name:</div>
+      <div class="text-gray-900 font-medium">${businessName}</div>
+
+      <div class="text-gray-600">Rating:</div>
+      <div class="text-gray-900 font-medium">${rating}</div>
+    `;
+        } else {
+          // Fallback if listing_agent is not present
+          html += `
+      <div class="text-gray-600">Listing Agent:</div>
+      <div class="text-gray-900 font-medium">No agent data</div>
+    `;
+        }
+
+        html += "</div>";
+        container.innerHTML = html;
+      }
+
+      function displayImages(images) {
+        const container = document.getElementById("property-images");
+        if (!images || !images.length) {
+          container.innerHTML = '<div class="text-gray-500">No images available.</div>';
+          return;
+        }
+
+        container.innerHTML = images
+          .map(
+            (url) => `
+              <img 
+                src="${url}" 
+                alt="Property Image" 
+                class="gallery-image h-64 w-96 object-cover rounded-lg shadow-md"
+                onerror="this.onerror=null; this.src='/api/placeholder/400/320'"
+              />
+            `
+          )
+          .join("");
+      }
+
+      function displayPriceAnalysis(predictionData, propertyData) {
+        // Update price displays
+        updateElement("listing-price", formatCurrency(propertyData.price || 0));
+        updateElement(
+          "price-prediction",
+          formatCurrency(predictionData.price_prediction || 0)
+        );
+        updateElement("zestimate", formatCurrency(predictionData.zestimate || 0));
+
+        // Calculate price comparisons
+        const listingPrice = propertyData.price || 0;
+        const prediction = predictionData.price_prediction || 0;
+        const zestimate = predictionData.zestimate || 0;
+
+        if (listingPrice && prediction) {
+          const predictionVsListing = calculatePriceDiff(prediction, listingPrice);
+          updateElement("prediction-vs-listing", formatPriceDiff(predictionVsListing));
+        }
+
+        if (prediction && zestimate) {
+          const predictionVsZestimate = calculatePriceDiff(prediction, zestimate);
+          updateElement(
+            "prediction-vs-zestimate",
+            formatPriceDiff(predictionVsZestimate)
+          );
+        }
+
+        // Tax Assessment Ratio
+        if (propertyData.taxAssessedValue && listingPrice) {
+          const taxRatio =
+            (listingPrice / propertyData.taxAssessedValue).toFixed(2) + "x";
+          updateElement("tax-assessment-ratio", taxRatio);
+        }
+
+        // Market Analysis
+        let marketAnalysis = generateMarketAnalysis(
+          prediction,
+          listingPrice,
+          zestimate,
+          propertyData
+        );
+        updateElement("market-analysis", marketAnalysis);
+      }
+
+      function generateMarketAnalysis(prediction, listingPrice, zestimate, propertyData) {
+        let analysis = [];
+
+        if (prediction && listingPrice && zestimate) {
+          if (prediction < listingPrice && zestimate < listingPrice) {
+            analysis.push(
+              "Property may be overpriced based on both our prediction and Zillow's estimate."
+            );
+          } else if (prediction > listingPrice && zestimate > listingPrice) {
+            analysis.push(
+              "Property may be underpriced based on both our prediction and Zillow's estimate."
+            );
+          }
+        }
+
+        if (propertyData.taxAssessedValue && listingPrice) {
+          const taxRatio = listingPrice / propertyData.taxAssessedValue;
+          if (taxRatio > 1.5) {
+            analysis.push(
+              "Property is listed significantly above its tax assessed value, which could affect future property taxes."
+            );
+          }
+        }
+
+        return analysis.length
+          ? analysis.join("<br/>")
+          : "Insufficient data for market analysis";
+      }
+
+      // ==============
+      // HELPER METHODS
+      // ==============
+      function calculatePriceDiff(price1, price2) {
+        return ((price1 - price2) / price2) * 100;
+      }
+
+      function formatPriceDiff(percentage) {
+        const sign = percentage > 0 ? "+" : "";
+        return `${sign}${percentage.toFixed(1)}%`;
+      }
+
+      function updateElement(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = value;
+      }
+
+      function formatValue(key, value) {
+        if (typeof value === "number") {
+          // Format currency for price-related fields
+          if (key.toLowerCase().includes("price") || key === "taxAssessedValue") {
+            return formatCurrency(value);
+          }
+          // Otherwise, just numeric formatting
+          return value.toLocaleString();
+        }
+        return value;
+      }
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(value);
+      }
     </script>
-  </head>
-  <body>
-    <h1>Property Viewer</h1>
-    <div>
-      <label for="address">Enter Address:</label>
-      <input type="text" id="address" placeholder="123 Main St, City, State" />
-      <button onclick="fetchPropertyData()">Fetch Property Data</button>
-    </div>
-
-    <h2>Property Data:</h2>
-    <pre id="property-data">No data yet.</pre>
-
-    <h2>Property Images:</h2>
-    <div id="property-images">No images yet.</div>
-
-    <h2>Quality Score:</h2>
-    <div id="quality-score">No score yet.</div>
   </body>
 </html>
