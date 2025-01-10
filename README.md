@@ -5,9 +5,9 @@
 - [Initial Project Proposal](#initial-project-proposal)
 - [Literature Review](docs/v1/literature-review.md)
 - [Detailed Work Plan](docs/v1/detailed-work-plan.md)
-- [API Documentation](#api-documentation)
-- [System Architecture](#system-architecture)
-- [Technologies](#technologies)
+- [System Architecture](docs/v1/system-architecture.md)
+- [Technologies](#tech-stack-and-libraries)
+- [Presentation](docs/v1/Real-Estate-AVM-presentation.pdf)
 
 ## Initial Project Proposal
 
@@ -68,3 +68,7 @@ Detailed information about the system architecture is available in the [System A
   - Final UI: React
 - ML/Data Analysis: PyTorch, Scikit-learn, Pandas, Numpy, Matplotlib, Jupyter Notebooks
 - Deployment: GCP (Google Cloud Platform), Vercel, Docker
+
+## Presentation:
+
+Our presentation is available [here](docs/v1/Real-Estate-AVM-presentation.pdf)
