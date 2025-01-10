@@ -7,7 +7,7 @@
 - [Detailed Work Plan](docs/v1/detailed-work-plan.md)
 - [System Architecture](docs/v1/system-architecture.md)
 - [Technologies](#tech-stack-and-libraries)
-- [Presentation](docs/v1/Real-Estate-AVM-presentation.pdf)
+- [Presentation](docs/v1/Real%20Estate%20AVM%20presentation.pdf)
 
 ## Initial Project Proposal
 
@@ -71,4 +71,4 @@ Detailed information about the system architecture is available in the [System A
 
 ## Presentation:
 
-Our presentation is available [here](docs/v1/Real-Estate-AVM-presentation.pdf)
+Our presentation is available [here](docs/v1/Real%20Estate%20AVM%20presentation.pdf)
